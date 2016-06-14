@@ -1,5 +1,5 @@
 target/
-.DS_STORE
+**/*.DS_STORE
 .idea/*
 *.iml
 .settings/*
