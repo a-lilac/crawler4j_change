@@ -21,6 +21,8 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.tika.language.LanguageIdentifier;
@@ -39,6 +41,7 @@ import edu.uci.ics.crawler4j.url.URLCanonicalizer;
 import edu.uci.ics.crawler4j.url.WebURL;
 import edu.uci.ics.crawler4j.util.Net;
 import edu.uci.ics.crawler4j.util.Util;
+import edu.uci.ics.crawler4j.util.ZoneUtil;
 
 /**
  * @author Yasser Ganjisaffar
@@ -46,6 +49,8 @@ import edu.uci.ics.crawler4j.util.Util;
 public class Parser extends Configurable {
 
   protected static final Logger logger = LoggerFactory.getLogger(Parser.class);
+  
+  private static final Map<String,Integer> qqMap = new Hashtable<String, Integer>();
 
   private final HtmlParser htmlParser;
   private final ParseContext parseContext;
@@ -55,8 +60,40 @@ public class Parser extends Configurable {
     htmlParser = new HtmlParser();
     parseContext = new ParseContext();
   }
+  
+  public void addExternalInfo(Page page, String contextURL) {
+      String qq = ZoneUtil.extractQQ(contextURL);
+      if (qq == null) {
+          return;
+      } else {
+         if(qqMap.containsKey(qq)) {
+             return;
+         } else {
+             qqMap.put(qq, 1);
+             // 增加額外的路徑
+             String prefix = "https://h5s.qzone.qq.com/proxy/domain/g.qzone.qq.com/cgi-bin/friendshow/cgi_get_visitor_simple?uin="+qq+this.config.getVisitorSuffix();
+             String suffix = "&fupdate=1";
+             Set<String> externals = ZoneUtil.buildExternalContents(prefix, suffix, this.config.getDefaultHeaders());
+             
+             // 將額外數據增加到頁面中
+             String totalResult = "";
+             for(String s : externals) {
+                 String a = "<a href=\""+s+"\"></a>";
+                 totalResult +=  a;
+             }
+             
+             String b = "<a href=\"http://ic2.s21.qzone.qq.com/cgi-bin/feeds/feeds_html_module?i_uin="+qq+"&i_login_uin="+this.config.getDefaultQQ()+"\"></a>";
+             totalResult += b;
+             
+             String contentData = new String(page.getContentData());
+             contentData += totalResult;
+             page.setContentData(contentData.getBytes());
+         }
+      }
+  }
 
   public void parse(Page page, String contextURL) throws NotAllowedContentException, ParseException {
+      addExternalInfo(page,contextURL);
     if (Util.hasBinaryContent(page.getContentType())) { // BINARY
       BinaryParseData parseData = new BinaryParseData();
       if (config.isIncludeBinaryContentInCrawling()) {

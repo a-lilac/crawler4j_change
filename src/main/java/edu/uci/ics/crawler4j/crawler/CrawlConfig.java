@@ -28,6 +28,15 @@ import org.apache.http.message.BasicHeader;
 import edu.uci.ics.crawler4j.crawler.authentication.AuthInfo;
 
 public class CrawlConfig {
+  
+  /**
+   * 空间最近访问者后缀
+   */
+  private String visitorSuffix;
+  /**
+   * 主体QQ
+   */
+  private String defaultQQ;
 
   /**
    * The folder which will be used by crawler for storing the intermediate
@@ -201,8 +210,17 @@ public class CrawlConfig {
   public boolean isResumableCrawling() {
     return resumableCrawling;
   }
+  
 
-  /**
+  public String getDefaultQQ() {
+    return defaultQQ;
+}
+
+public void setDefaultQQ(String defaultQQ) {
+    this.defaultQQ = defaultQQ;
+}
+
+/**
    * If this feature is enabled, you would be able to resume a previously
    * stopped/crashed crawl. However, it makes crawling slightly slower
    *
@@ -494,8 +512,18 @@ public class CrawlConfig {
   public void setAuthInfos(List<AuthInfo> authInfos) {
     this.authInfos = authInfos;
   }
+  
+  
 
-  @Override
+  public String getVisitorSuffix() {
+    return visitorSuffix;
+}
+
+public void setVisitorSuffix(String visitorSuffix) {
+    this.visitorSuffix = visitorSuffix;
+}
+
+@Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("Crawl storage folder: " + getCrawlStorageFolder() + "\n");
